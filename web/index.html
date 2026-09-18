@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telecom Fraud Control Center</title>
+    <!-- HTMX for reactive polling -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Tailwind for rapid hackathon styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vis.js for Network Graphing -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <!-- Leaflet for Geo Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #network-graph { height: 400px; width: 100%; border-radius: 0.75rem; background: #111827; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-200 font-sans min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex justify-between items-center border-b border-gray-800 pb-6 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-blue-400 flex items-center gap-3">
+                    🛡️ Syndicate Fraud Radar
+                </h1>
+                <p class="text-gray-500 mt-2 text-sm">Real-time SIM Swap & Device Collusion Monitoring Engine</p>
+            </div>
+            
+            <!-- Dashboard Controls -->
+            <div class="flex gap-4">
+                <a href="/api/export/dossier" download="NotMySim_Dossier.txt" class="bg-blue-900/50 hover:bg-blue-800 text-blue-300 px-4 py-2 rounded shadow transition active:scale-95 border border-blue-700 font-bold flex items-center gap-2">
+                    📄 Export Police Dossier
+                </a>
+                <button hx-post="/ui/trigger-cinematic" hx-swap="none" onclick="this.innerHTML='🎬 Running...'; this.classList.add('opacity-50')" class="bg-purple-900/50 hover:bg-purple-800 text-purple-300 px-4 py-2 rounded shadow transition active:scale-95 border border-purple-700 font-bold flex items-center gap-2">
+                    🎬 Cinematic Demo Mode
+                </button>
+                <button hx-post="/ui/trigger" hx-swap="none" class="bg-red-900/50 hover:bg-red-800 text-red-300 px-4 py-2 rounded shadow transition active:scale-95 border border-red-700 font-bold">
+                    ⚡ Fast Attack Simulation
+                </button>
+                <button hx-post="/admin/reset-demo" hx-swap="none" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded shadow transition active:scale-95 border border-gray-600">
+                    🔄 Reset Demo
+                </button>
+            </div>
+        </header>
+
+        <!-- Financial ROI Tracker -->
+        <div hx-get="/ui/roi" hx-trigger="load, every 2s" class="mb-6">
+            <!-- Fallback skeleton before load -->
+            <div class="flex flex-col items-center justify-center p-6 bg-gray-900 border border-gray-800 rounded-xl shadow-xl animate-pulse">
+                <div class="h-4 bg-gray-800 rounded w-48 mb-4"></div>
+                <div class="h-12 bg-gray-800 rounded w-64"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column: Live CEP Account States -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl flex flex-col">
+                <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2">
+                    📡 Live Account Stream
+                </h2>
+                <div class="overflow-x-auto rounded border border-gray-800">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-800 text-gray-400">
+                            <tr>
+                                <th class="py-3 px-4">Victim Phone</th>
+                                <th class="py-3 px-4">Hardware ID</th>
+                                <th class="py-3 px-4">CEP Threat State</th>
+                                <th class="py-3 px-4 text-center">Case Mgmt</th>
+                                <th class="py-3 px-4 text-right">Age</th>
+                            </tr>
+                        </thead>
+                        <!-- HTMX injects the states.html template here every 1s -->
+                        <tbody hx-get="/ui/states" hx-trigger="load, every 1s" class="divide-y divide-gray-800/50">
+                            <tr><td colspan="4" class="p-4 text-center text-gray-600 animate-pulse">Connecting to stream...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right Column: Graph Network Intelligence -->
+            <div class="flex flex-col gap-8">
+                <!-- Recipient Hubs -->
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2">
+                        🕸️ Graph Hubs (Recipient Mules)
+                    </h2>
+                    <div hx-get="/ui/hubscore" hx-trigger="load, every 2s" class="flex flex-col gap-4 min-h-[150px]">
+                        <div class="p-8 text-center text-gray-600 border border-dashed border-gray-800 rounded-lg animate-pulse">
+                            Analyzing network topology...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Tracker -->
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2">
+                        📱 Hardware Fingerprints
+                    </h2>
+                    <div hx-get="/ui/devices" hx-trigger="load, every 2s" class="flex flex-col gap-3 min-h-[150px]">
+                        <div class="p-8 text-center text-gray-600 border border-dashed border-gray-800 rounded-lg animate-pulse">
+                            Scanning hardware identifiers...
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Insider Threats -->
+                <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2">
+                        🕵️ Insider Threats
+                    </h2>
+                    <div hx-get="/ui/agents" hx-trigger="load, every 2s" class="flex flex-col gap-3 min-h-[150px]">
+                        <div class="p-8 text-center text-gray-600 border border-dashed border-gray-800 rounded-lg animate-pulse">
+                            Scanning internal audit logs...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+            <!-- Geographic Fraud Map (Leaflet) -->
+            <div class="col-span-2 bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+                <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2">
+                    🌍 Real-time Geo-Velocity Tracker
+                </h2>
+                <div id="geo-map" class="h-[400px] w-full rounded-xl bg-gray-800 relative z-0"></div>
+            </div>
+
+            <!-- Victim Phone Simulator -->
+            <div class="col-span-1 bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl flex flex-col items-center justify-center">
+                <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2 self-start">
+                    📱 Victim's Device
+                </h2>
+                <div hx-get="/ui/phone" hx-trigger="load, every 2s" class="flex justify-center w-full">
+                    <div class="text-gray-500 animate-pulse text-sm">Waiting for connection...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Width: Network Topology Map -->
+        <div class="mt-8 bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl">
+            <h2 class="text-xl font-semibold mb-4 text-gray-300 flex items-center gap-2">
+                🕸️ Live Network Topology Map
+            </h2>
+            <div id="network-graph"></div>
+        </div>
+    </div>
+
+    <!-- Vis.js Initialization and Polling Script -->
+    <script>
+        var nodes = new vis.DataSet([]);
+        var edges = new vis.DataSet([]);
+        var container = document.getElementById('network-graph');
+        var data = { nodes: nodes, edges: edges };
+        var options = {
+            nodes: {
+                shape: 'dot',
+                size: 20,
+                font: { size: 14, color: '#ffffff' },
+                borderWidth: 2
+            },
+            edges: {
+                width: 2,
+                color: { color: '#4B5563', highlight: '#9CA3AF' },
+                smooth: { type: 'continuous' }
+            },
+            physics: {
+                barnesHut: { gravitationalConstant: -2000, centralGravity: 0.3, springLength: 95 },
+                stabilization: { iterations: 150 }
+            }
+        };
+        var network = new vis.Network(container, data, options);
+
+        var lastGraphData = "";
+        function updateGraph() {
+            fetch('/api/graph-data')
+                .then(r => r.text())
+                .then(text => {
+                    if (text === lastGraphData) return; // Skip if no changes!
+                    lastGraphData = text;
+                    let newData = JSON.parse(text);
+                    nodes.update(newData.nodes);
+                    edges.update(newData.edges);
+                })
+                .catch(console.error);
+        }
+
+        // Poll every 2 seconds
+        setInterval(updateGraph, 2000);
+        updateGraph();
+
+        // -------------------------------------------------------------
+        // Leaflet Geo-Map Initialization
+        // -------------------------------------------------------------
+        var map = L.map('geo-map').setView([-1.2921, 36.8219], 6); // Centered on Kenya
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+            maxZoom: 19
+        }).addTo(map);
+
+        var markers = {};
+        var lastGeoData = "";
+        function updateMap() {
+            fetch('/api/geo-data')
+                .then(r => r.text())
+                .then(text => {
+                    if (text === lastGeoData) return; // Skip if no changes!
+                    lastGeoData = text;
+                    let data = JSON.parse(text);
+                    data.forEach(d => {
+                        if (!markers[d.location]) {
+                            // Create new marker
+                            var circle = L.circleMarker([d.lat, d.lng], {
+                                color: '#EF4444',
+                                fillColor: '#EF4444',
+                                fillOpacity: 0.5,
+                                radius: 10 + (d.count * 2)
+                            }).addTo(map);
+                            circle.bindPopup(`<b>${d.location}</b><br>Fraud Events: ${d.count}`);
+                            markers[d.location] = circle;
+                        } else {
+                            // Update existing marker size
+                            markers[d.location].setRadius(10 + (d.count * 2));
+                            markers[d.location].getPopup().setContent(`<b>${d.location}</b><br>Fraud Events: ${d.count}`);
+                        }
+                    });
+                })
+                .catch(console.error);
+        }
+
+        setInterval(updateMap, 2000);
+        updateMap();
+    </script>
+</body>
+</html>

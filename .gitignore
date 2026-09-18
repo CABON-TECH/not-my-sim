@@ -1,0 +1,19 @@
+# Environment — never commit real credentials
+.env
+
+# Build output
+/bin/
+*.exe
+
+# Go test cache
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

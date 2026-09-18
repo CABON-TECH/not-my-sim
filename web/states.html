@@ -1,0 +1,48 @@
+{{range .}}
+<tr class="hover:bg-gray-800/30 transition-colors">
+    <td class="py-3 px-4 font-mono text-gray-300">{{.PhoneNumber}}</td>
+    <td class="py-3 px-4">
+        {{if eq .DeviceID "Unknown"}}
+            <span class="text-xs text-gray-600 italic">Pending...</span>
+        {{else}}
+            <span class="px-2 py-1 bg-blue-900/30 text-blue-300 border border-blue-800/50 rounded font-mono text-xs">{{.DeviceID}}</span>
+        {{end}}
+    </td>
+    <td class="py-3 px-4">
+        {{if eq .State "NORMAL"}}
+            <span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-green-900/30 text-green-400 border border-green-800/50">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> NORMAL
+            </span>
+        {{else if eq .State "SWAP_DETECTED"}}
+            <span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-yellow-900/30 text-yellow-400 border border-yellow-800/50">
+                <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> SWAP_DETECTED
+            </span>
+        {{else if eq .State "CREDENTIAL_RESET_POST_SWAP"}}
+            <span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-orange-900/30 text-orange-400 border border-orange-800/50">
+                <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span> RESET_POST_SWAP
+            </span>
+        {{else if eq .State "TRANSFER_POST_RESET"}}
+            <span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-bold bg-red-900/30 text-red-400 border border-red-800 shadow-[0_0_10px_rgba(220,38,38,0.3)] animate-pulse">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> TRANSFER_POST_RESET
+            </span>
+        {{end}}
+    </td>
+    <td class="py-3 px-4 text-center">
+        {{if .IsFrozen}}
+            <div class="flex items-center gap-2 justify-center">
+                <span title="Account Frozen" class="text-blue-400 font-bold bg-blue-900/30 border border-blue-800 px-2 py-1 rounded text-xs">❄️ FROZEN</span>
+                <button hx-post="/ui/unfreeze?phone={{.PhoneNumber}}" hx-swap="none" class="bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-600 px-2 py-1 rounded text-xs transition active:scale-95">Unfreeze</button>
+            </div>
+        {{else}}
+            <span class="text-gray-600 text-xs">-</span>
+        {{end}}
+    </td>
+    <td class="py-3 px-4 text-right text-gray-500 text-xs tabular-nums">{{.Age}}</td>
+</tr>
+{{else}}
+<tr>
+    <td colspan="4" class="py-8 text-center text-gray-600 border border-dashed border-gray-800 rounded">
+        No active accounts found in the database.
+    </td>
+</tr>
+{{end}}

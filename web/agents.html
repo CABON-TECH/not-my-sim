@@ -1,0 +1,27 @@
+{{range .}}
+<div class="bg-purple-950/30 border {{if ge .FraudCount 2}}border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]{{else}}border-gray-800{{end}} rounded-lg p-4 flex justify-between items-center">
+    <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Corrupt Agent ID</p>
+        <span class="font-mono text-sm text-purple-400 font-bold bg-gray-900 px-2 py-1 border border-gray-800 rounded">
+            {{.AgentID}}
+        </span>
+    </div>
+    <div class="text-right">
+        <span class="text-2xl font-bold text-purple-500 block">
+            {{.FraudCount}}
+        </span>
+        <span class="text-xs text-gray-500 uppercase tracking-wider block mt-1">Frozen Swaps</span>
+    </div>
+</div>
+{{if ge .FraudCount 2}}
+<div class="mb-4 mt-1 flex items-center gap-2 text-purple-400 bg-purple-950/50 p-2 rounded border border-purple-900/50">
+    <span class="text-sm animate-pulse">🕵️</span>
+    <p class="text-xs font-semibold uppercase tracking-wide">Insider Threat Flagged</p>
+</div>
+{{end}}
+{{else}}
+<div class="flex flex-col items-center justify-center text-gray-600 border border-dashed border-gray-800 rounded-lg p-6">
+    <span class="text-3xl mb-2 opacity-50">🕵️</span>
+    <p class="text-sm mt-2">No insiders detected.</p>
+</div>
+{{end}}

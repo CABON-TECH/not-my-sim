@@ -1,0 +1,28 @@
+{{range .}}
+<div class="bg-gray-950 border {{if ge .VictimCount 2}}border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]{{else}}border-gray-800{{end}} rounded-lg p-4 flex justify-between items-center">
+    <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Device/Hardware ID</p>
+        <span class="font-mono text-sm {{if ge .VictimCount 2}}text-red-300 font-bold{{else}}text-blue-300{{end}} bg-gray-900 px-2 py-1 border border-gray-800 rounded">
+            {{.DeviceID}}
+        </span>
+    </div>
+    
+    <div class="text-right">
+        <span class="text-2xl font-bold {{if ge .VictimCount 2}}text-red-500{{else}}text-gray-300{{end}} block">
+            {{.VictimCount}}
+        </span>
+        <span class="text-xs text-gray-500 uppercase tracking-wider block mt-1">Linked Victims</span>
+    </div>
+</div>
+{{if ge .VictimCount 2}}
+<div class="mb-4 mt-1 flex items-center gap-2 text-red-400 bg-red-950/50 p-2 rounded border border-red-900/50">
+    <span class="text-sm animate-pulse">⚠️</span>
+    <p class="text-xs font-semibold uppercase tracking-wide">Device Collusion Detected</p>
+</div>
+{{end}}
+{{else}}
+<div class="flex flex-col items-center justify-center text-gray-600 border border-dashed border-gray-800 rounded-lg p-6">
+    <span class="text-3xl mb-2 opacity-50">📱</span>
+    <p class="text-sm">No hardware linked yet.</p>
+</div>
+{{end}}

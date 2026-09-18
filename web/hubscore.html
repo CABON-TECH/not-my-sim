@@ -1,0 +1,63 @@
+{{range .}}
+<div class="bg-gray-950 border {{if ge .VictimCount 2}}border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]{{else}}border-gray-800{{end}} rounded-lg p-5 relative overflow-hidden">
+    
+    <!-- Red alert background glow for syndicates -->
+    {{if ge .VictimCount 2}}
+    <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+    {{end}}
+
+    <div class="flex justify-between items-start mb-3 relative z-10">
+        <div>
+            <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">Mule Recipient Node</p>
+            <h3 class="text-xl font-mono font-bold text-white">{{.Recipient}}</h3>
+        </div>
+        <span class="px-2.5 py-1 rounded-md text-xs font-bold tracking-wide 
+            {{if eq .RiskLabel "ISOLATED"}} bg-gray-800 text-gray-400 border border-gray-700
+            {{else if eq .RiskLabel "SYNDICATE_CANDIDATE"}} bg-red-900/50 text-red-400 border border-red-800
+            {{else}} bg-red-600 text-white shadow-lg animate-pulse {{end}}">
+            {{.RiskLabel}}
+        </span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mt-4 relative z-10">
+        <div class="bg-gray-900 rounded p-3 border border-gray-800/50">
+            <p class="text-gray-500 text-xs mb-1">Distinct Victims</p>
+            <p class="text-2xl font-bold {{if ge .VictimCount 2}}text-red-400{{else}}text-white{{end}}">{{.VictimCount}}</p>
+        </div>
+        <div class="bg-gray-900 rounded p-3 border border-gray-800/50">
+            <p class="text-gray-500 text-xs mb-1">Fraud Edge Weight</p>
+            <p class="text-2xl font-bold text-white">{{.TotalWeight}}</p>
+        </div>
+    </div>
+
+    {{if ge .VictimCount 2}}
+    <div class="mt-4 p-3 bg-red-950/30 border border-red-900 rounded-lg flex flex-col gap-2 relative z-10">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl animate-pulse">🚨</span>
+            <p class="text-xs text-red-400 font-bold tracking-wider">MULTI-ACCOUNT SYNDICATE INFRASTRUCTURE DETECTED</p>
+        </div>
+        
+        <!-- AI Analyst Box -->
+        <div class="mt-2 bg-black/50 border border-purple-900/50 rounded p-3 relative overflow-hidden">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-xs font-bold text-purple-400 animate-pulse">🤖 AI ANALYST SYNTHESIS</span>
+            </div>
+            <p class="text-[10px] text-gray-400 leading-relaxed font-mono">
+                Analysis complete. High-confidence syndicate detected at Hub {{.Recipient}}. Attack vectors confirm impossible travel between Mombasa and Nairobi, leveraging a compromised hardware device (Device Collision). Corrupt internal actor (Agent KPL-409) facilitated the initial SIM swaps. Immediate neutralization recommended to prevent further capital flight.
+            </p>
+        </div>
+    </div>
+    <div class="mt-4 border-t border-red-900/50 pt-4 relative z-10">
+        <button hx-post="/ui/takedown?mule={{.Recipient}}" hx-swap="none" onclick="this.innerHTML='☢️ NEUTRALIZING...'; this.classList.add('opacity-50')" class="w-full bg-red-950 hover:bg-red-800 text-red-200 py-3 rounded border border-red-700 shadow-[0_0_15px_rgba(220,38,38,0.3)] transition active:scale-95 font-bold tracking-widest text-sm flex items-center justify-center gap-2">
+            ☢️ NEUTRALIZE NETWORK
+        </button>
+    </div>
+    {{end}}
+</div>
+{{else}}
+<div class="flex flex-col items-center justify-center h-full text-gray-600 border border-dashed border-gray-800 rounded-lg p-8">
+    <span class="text-4xl mb-3 opacity-50">📡</span>
+    <p>Network clear.</p>
+    <p class="text-sm mt-1">No shared recipients detected in the current window.</p>
+</div>
+{{end}}
