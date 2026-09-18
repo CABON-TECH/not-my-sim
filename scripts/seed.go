@@ -122,7 +122,7 @@ func main() {
 	time.Sleep(400 * time.Millisecond)
 
 	// =========================================================
-	// Account C → "Grey Area" 2FA Trigger (70 Points)
+	// Account C → Grey Area 2FA Trigger (70 Points)
 	// =========================================================
 	phoneC := "+254119391977"
 	log.Printf("\n--- Attacking Account C (Grey Area 2FA): %s ---", phoneC)

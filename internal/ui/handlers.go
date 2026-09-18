@@ -2,6 +2,7 @@ package ui
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -454,24 +455,7 @@ func HandleGraphJSON(db *sql.DB) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		
-		// Manual JSON encoding to avoid importing "encoding/json" here just for this if it fails,
-		// but let's actually just import it correctly first.
-		importHack := `{"nodes": [`
-		for i, n := range g.Nodes {
-			if i > 0 { importHack += "," }
-			importHack += fmt.Sprintf(`{"id":"%s","label":"%s","group":"%s","color":"%s"}`, n.ID, n.Label, n.Group, n.Color)
-		}
-		importHack += `], "edges": [`
-		for i, e := range g.Edges {
-			if i > 0 { importHack += "," }
-			dashes := "false"
-			if e.Dashes { dashes = "true" }
-			importHack += fmt.Sprintf(`{"from":"%s","to":"%s","dashes":%s}`, e.From, e.To, dashes)
-		}
-		importHack += `]}`
-		
-		w.Write([]byte(importHack))
+		json.NewEncoder(w).Encode(g)
 	}
 }
 
@@ -490,7 +474,7 @@ func HandlePhoneScreen() http.HandlerFunc {
 // HandleGeoData returns the locations of recent fraudulent events.
 func HandleGeoData(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Just a simple mock map of known locations to coords for the hackathon demo
+		// Mock map of known locations to coords for demonstration
 		coords := map[string][]float64{
 			"Nairobi, KE": {-1.2921, 36.8219},
 			"Mombasa, KE": {-4.0435, 39.6682},
@@ -516,15 +500,6 @@ func HandleGeoData(db *sql.DB) http.HandlerFunc {
 		rows.Close()
 
 		w.Header().Set("Content-Type", "application/json")
-		
-		// Manual JSON (since we avoided importing encoding/json earlier)
-		out := "["
-		for i, d := range data {
-			if i > 0 { out += "," }
-			out += fmt.Sprintf(`{"location":"%s","lat":%f,"lng":%f,"count":%d}`, d["location"], d["lat"], d["lng"], d["count"])
-		}
-		out += "]"
-		
-		w.Write([]byte(out))
+		json.NewEncoder(w).Encode(data)
 	}
 }

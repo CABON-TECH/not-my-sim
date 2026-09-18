@@ -76,7 +76,7 @@ func main() {
 	time.Sleep(4 * time.Second)
 
 	// --- ACCOUNT C ---
-	// Using your real phone number so the SMS actually goes to your physical device!
+	// Target user device for Interactive SMS
 	phoneC := "+254119391977"
 	log.Printf("\n[SCENE 3] The 'Grey Area' Attack on Account C: %s", phoneC)
 	log.Println("  -> SIM Swap occurs, but attacker waits a while before acting.")
@@ -86,7 +86,7 @@ func main() {
 	})
 	time.Sleep(3 * time.Second)
 
-	log.Println("  -> Sketchy PIN reset from Kisumu (Triggering 2FA SMS because score is exactly 70)")
+	log.Println("  -> Simulating anomaly: PIN reset from unrecognized location (Score: 70)")
 	post("/events/reset", map[string]interface{}{
 		"eventId": "reset-cin-C", "phoneNumber": phoneC,
 		"deviceId": "imei-suspicious-555", "location": "Kisumu, KE",

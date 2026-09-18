@@ -9,7 +9,7 @@
 //	Any non-NORMAL state → (window expires with no further events) → NORMAL
 //
 // Production equivalent: Apache Flink CEP job with per-key state, running on
-// the Kafka event stream. Here: a single goroutine consuming all three in-process
+// the Kafka event stream. For this prototype: a single goroutine consuming all three streams in-process
 // channels, maintaining an in-memory state map backed by Postgres.
 package statemachine
 

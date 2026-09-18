@@ -16,7 +16,7 @@ type SMSState struct {
 	Time    string
 }
 
-// LastSMS holds the most recently dispatched SMS for the UI Phone Simulator
+// LastSMS holds the most recently dispatched SMS
 var LastSMS SMSState
 
 // Send2FASMS sends an interactive SMS via Africa's Talking.
