@@ -409,8 +409,14 @@ func HandleGraphJSON(db *sql.DB) http.HandlerFunc {
 		g.Nodes = []NodeJSON{}
 		g.Edges = []EdgeJSON{}
 
-		// 1. Account Nodes
-		rowsA, _ := db.Query(`SELECT phone_number, is_frozen FROM account_state`)
+		// 1. Account Nodes (Only fetch nodes involved in fraud or suspected fraud to prevent graph lag)
+		rowsA, _ := db.Query(`
+			SELECT phone_number, is_frozen 
+			FROM account_state 
+			WHERE is_frozen = TRUE 
+			   OR phone_number IN (SELECT from_number FROM graph_edges)
+			   OR phone_number IN (SELECT to_number FROM graph_edges)
+		`)
 		for rowsA.Next() {
 			var phone string
 			var frozen bool
