@@ -69,6 +69,10 @@ func HandleStates(db *sql.DB) http.HandlerFunc {
 				states = append(states, s)
 			}
 		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		tmpl, err := template.ParseFiles("web/states.html")
 		if err != nil {
@@ -100,6 +104,10 @@ func HandleDevices(db *sql.DB) http.HandlerFunc {
 			if err := rows.Scan(&d.DeviceID, &d.VictimCount); err == nil {
 				devices = append(devices, d)
 			}
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		tmpl, err := template.ParseFiles("web/devices.html")
@@ -141,6 +149,10 @@ func HandleAgents(db *sql.DB) http.HandlerFunc {
 				agents = append(agents, a)
 			}
 		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		tmpl, err := template.ParseFiles("web/agents.html")
 		if err != nil {
@@ -161,7 +173,7 @@ func HandleROI(db *sql.DB) http.HandlerFunc {
 			JOIN account_state a ON t.from_number = a.phone_number 
 			WHERE a.is_frozen = TRUE
 		`).Scan(&total)
-		
+
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -174,7 +186,7 @@ func HandleROI(db *sql.DB) http.HandlerFunc {
 
 		// Simple HTML response for the counter
 		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(fmt.Sprintf(`
+		w.Write(fmt.Appendf(nil, `
 			<div class="flex flex-col items-center justify-center p-6 bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-800 rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.15)] fade-in">
 				<span class="text-emerald-400 font-bold tracking-widest uppercase text-sm mb-2 flex items-center gap-2">
 					<span class="relative flex h-3 w-3">
@@ -188,7 +200,7 @@ func HandleROI(db *sql.DB) http.HandlerFunc {
 				</div>
 				<span class="text-gray-400 text-xs mt-3">Total funds automatically protected from confirmed fraud syndicates.</span>
 			</div>
-		`, formatMoney(val))))
+		`, formatMoney(val)))
 	}
 }
 
@@ -250,7 +262,7 @@ func HandleUnfreeze(db *sql.DB) http.HandlerFunc {
 		if len(phone) > 0 && phone[0] == ' ' {
 			phone = "+" + phone[1:]
 		}
-		
+
 		if phone == "" {
 			http.Error(w, "missing phone", http.StatusBadRequest)
 			return
@@ -263,7 +275,7 @@ func HandleUnfreeze(db *sql.DB) http.HandlerFunc {
 		if err != nil {
 			log.Printf("ui: unfreeze err: %v", err)
 		}
-		
+
 		// Unlink device so it doesn't immediately re-trigger collusion limits for new demo attacks
 		db.Exec(`DELETE FROM device_edges WHERE phone_number = $1`, phone)
 
@@ -303,7 +315,7 @@ func HandleExportDossier(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Content-Disposition", `attachment; filename="NotMySim_Police_Dossier.txt"`)
-		
+
 		var dossier strings.Builder
 		dossier.WriteString("===================================================\n")
 		dossier.WriteString("      NOT-MY-SIM: LAW ENFORCEMENT FRAUD DOSSIER    \n")
@@ -318,6 +330,10 @@ func HandleExportDossier(db *sql.DB) http.HandlerFunc {
 			rowsA.Scan(&id, &count)
 			dossier.WriteString(fmt.Sprintf(" - Agent ID: %s (Authorized %d fraudulent swaps)\n", id, count))
 		}
+		if err := rowsA.Err(); err != nil {
+			http.Error(w, "failed to read agent data", http.StatusInternalServerError)
+			return
+		}
 		rowsA.Close()
 
 		dossier.WriteString("\n[COMPROMISED HARDWARE (IMEI/MAC)]\n")
@@ -328,6 +344,10 @@ func HandleExportDossier(db *sql.DB) http.HandlerFunc {
 			rowsD.Scan(&dev, &count)
 			dossier.WriteString(fmt.Sprintf(" - Device ID: %s (Linked to %d victims)\n", dev, count))
 		}
+		if err := rowsD.Err(); err != nil {
+			http.Error(w, "failed to read device data", http.StatusInternalServerError)
+			return
+		}
 		rowsD.Close()
 
 		dossier.WriteString("\n[SYNDICATE MULE ACCOUNTS (HUBS)]\n")
@@ -337,6 +357,10 @@ func HandleExportDossier(db *sql.DB) http.HandlerFunc {
 			var weight int
 			rowsH.Scan(&mule, &weight)
 			dossier.WriteString(fmt.Sprintf(" - Mule Phone: %s (Total Risk Weight: %d)\n", mule, weight))
+		}
+		if err := rowsH.Err(); err != nil {
+			http.Error(w, "failed to read mule account data", http.StatusInternalServerError)
+			return
 		}
 		rowsH.Close()
 
@@ -402,6 +426,11 @@ func HandleGraphJSON(db *sql.DB) http.HandlerFunc {
 				Color: color,
 			})
 		}
+		if err := rowsA.Err(); err != nil {
+			rowsA.Close()
+			http.Error(w, "failed to read account nodes", http.StatusInternalServerError)
+			return
+		}
 		rowsA.Close()
 
 		// 2. Transfer Edges
@@ -412,6 +441,11 @@ func HandleGraphJSON(db *sql.DB) http.HandlerFunc {
 			rowsE.Scan(&from, &to)
 			g.Edges = append(g.Edges, EdgeJSON{From: from, To: to})
 			mules[to] = true
+		}
+		if err := rowsE.Err(); err != nil {
+			rowsE.Close()
+			http.Error(w, "failed to read transfer edges", http.StatusInternalServerError)
+			return
 		}
 		rowsE.Close()
 
@@ -442,6 +476,10 @@ func HandleGraphJSON(db *sql.DB) http.HandlerFunc {
 			rowsD.Scan(&phone, &dev)
 			g.Edges = append(g.Edges, EdgeJSON{From: phone, To: dev, Dashes: true})
 			devices[dev] = true
+		}
+		if err := rowsD.Err(); err != nil {
+			http.Error(w, "failed to read device edges", http.StatusInternalServerError)
+			return
 		}
 		rowsD.Close()
 
@@ -482,7 +520,7 @@ func HandleGeoData(db *sql.DB) http.HandlerFunc {
 		}
 
 		rows, _ := db.Query(`SELECT location, COUNT(*) FROM transfer_events GROUP BY location`)
-		
+
 		var data []map[string]interface{}
 		for rows.Next() {
 			var loc string
@@ -496,6 +534,10 @@ func HandleGeoData(db *sql.DB) http.HandlerFunc {
 					"count":    count,
 				})
 			}
+		}
+		if err := rows.Err(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 		rows.Close()
 

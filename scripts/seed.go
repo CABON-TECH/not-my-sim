@@ -124,7 +124,7 @@ func main() {
 	// =========================================================
 	// Account C → Grey Area 2FA Trigger (70 Points)
 	// =========================================================
-	phoneC := "+254119391977"
+	phoneC := "+254729080194"
 	log.Printf("\n--- Attacking Account C (Grey Area 2FA): %s ---", phoneC)
 
 	// SIM Swap + Reset + Isolated Transfer

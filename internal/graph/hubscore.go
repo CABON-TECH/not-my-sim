@@ -10,30 +10,15 @@ import (
 	"time"
 )
 
-// HubResult is one flagged recipient returned by the hub-scoring query.
 type HubResult struct {
 	Recipient   string    `json:"recipient"`
-	VictimCount int       `json:"victimCount"`  // distinct victims who sent to this recipient post-swap
-	TotalWeight int       `json:"totalWeight"`  // sum of edge weights (transfer frequency)
+	VictimCount int       `json:"victimCount"`  
+	TotalWeight int       `json:"totalWeight"`  
 	LastSeen    time.Time `json:"lastSeen"`
-	// RiskLabel gives human-readable context — important for judge legibility
-	// and mirrors the "reason codes" requirement in the design doc.
 	RiskLabel string `json:"riskLabel"`
 }
 
-// QueryHubScore finds recipients linked to ≥ minVictims distinct victims
-// within the past windowHours hours.
-//
-// Production equivalent: Neo4j Louvain community detection + centrality queries.
-// Here: a single SQL GROUP BY with HAVING — same structural insight, simpler engine.
-//
-// The query reads:
-//
-//	"Give me every recipient that received fraud-chain transfers from
-//	 at least N different victims within the time window."
-//
-// That is exactly what betweenness centrality would surface in a graph DB —
-// nodes that sit between many distinct source-cluster nodes and a common target.
+
 func QueryHubScore(db *sql.DB, minVictims, windowHours int) ([]HubResult, error) {
 	rows, err := db.Query(`
 		SELECT
@@ -68,8 +53,7 @@ func QueryHubScore(db *sql.DB, minVictims, windowHours int) ([]HubResult, error)
 	return results, nil
 }
 
-// riskLabel returns a human-readable syndicate risk classification.
-// These thresholds are documented in the design doc (not arbitrary magic numbers).
+
 func riskLabel(victimCount int) string {
 	switch {
 	case victimCount >= 5:
@@ -83,9 +67,6 @@ func riskLabel(victimCount int) string {
 	}
 }
 
-// QueryDeviceCollusion checks how many *distinct phone numbers* have used this physical device.
-// If count > 1, it implies multiple victims' accounts are being operated by the same physical smartphone
-// (a very strong fraud signal).
 func QueryDeviceCollusion(db *sql.DB, deviceID string) (int, error) {
 	if deviceID == "" {
 		return 1, nil
@@ -101,14 +82,6 @@ func QueryDeviceCollusion(db *sql.DB, deviceID string) (int, error) {
 	return count, nil
 }
 
-// HandleHubScore handles GET /graph/hub-score.
-// This is the demo's "show the pattern across victims" endpoint —
-// the moment where the system surfaces that this isn't isolated fraud.
-//
-// Query params:
-//
-//	min_victims  (default 2)  — minimum distinct victims to flag
-//	window_hours (default 24) — lookback window
 func HandleHubScore(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		minVictims := queryInt(r, "min_victims", 2)
@@ -121,7 +94,7 @@ func HandleHubScore(db *sql.DB) http.HandlerFunc {
 			return
 		}
 		if results == nil {
-			results = []HubResult{} // return [] not null
+			results = []HubResult{} 
 		}
 
 		log.Printf("🕸️  Hub-score query | minVictims=%d windowHours=%d → %d flagged recipients",

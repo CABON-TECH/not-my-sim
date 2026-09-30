@@ -77,7 +77,7 @@ func main() {
 
 	// --- ACCOUNT C ---
 	// Target user device for Interactive SMS
-	phoneC := "+254119391977"
+	phoneC := "+254729080194"
 	log.Printf("\n[SCENE 3] The 'Grey Area' Attack on Account C: %s", phoneC)
 	log.Println("  -> SIM Swap occurs, but attacker waits a while before acting.")
 	post("/webhooks/simswap", map[string]interface{}{

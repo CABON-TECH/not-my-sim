@@ -1,12 +1,4 @@
-// Package scoring implements the risk scoring engine described in design doc §3.6.
-//
-// It combines three signal families into a single score + reason codes:
-//   - CEP state (deterministic, rule-based — always available, zero latency)
-//   - Graph network score (hub-scoring query — is the recipient a known mule hub?)
-//   - ML model score (out of scope for hackathon — documented as next iteration)
-//
-// The output is a score (0–100) + human-readable reason codes, not just a number.
-// Reason codes are critical for both judge legibility and real-world compliance/audit.
+
 package scoring
 
 import (
@@ -17,7 +9,7 @@ import (
 	"github.com/cabon-tech/not-my-sim/internal/graph"
 )
 
-// Action is the recommended response to a given risk score.
+
 type Action string
 
 const (
@@ -27,27 +19,25 @@ const (
 	ActionSMSAndHold       Action = "SMS_ALERT_TRANSACTION_HOLD"
 )
 
-// Result is the output of the scoring engine for one evaluation.
+
 type Result struct {
 	PhoneNumber string    `json:"phoneNumber"`
-	Score       int       `json:"score"`       // 0–100 combined risk score
-	CEPRisk     int       `json:"cepRisk"`     // contribution from state machine state
-	GraphRisk   int       `json:"graphRisk"`   // contribution from hub-score
-	ReasonCodes []string  `json:"reasonCodes"` // human-readable, auditable
-	Action      Action    `json:"action"`      // recommended response
+	Score       int       `json:"score"`       
+	CEPRisk     int       `json:"cepRisk"`     
+	GraphRisk   int       `json:"graphRisk"`   
+	ReasonCodes []string  `json:"reasonCodes"` 
+	Action      Action    `json:"action"`      
 	ComputedAt  time.Time `json:"computedAt"`
 }
 
-// Thresholds — documented here, not magic numbers.
-// These match the table in the implementation plan.
+
 const (
-	thresholdSMSAlert  = 40 // score ≥ 40 → send SMS alert to victim
-	thresholdStepUp    = 70 // score ≥ 70 → require step-up auth for pending txn
-	thresholdHold      = 85 // score ≥ 85 → hold transaction + alert
+	thresholdSMSAlert  = 40 
+	thresholdStepUp    = 70 
+	thresholdHold      = 85 
 )
 
-// CEP state → base risk level. Must match statemachine.State.RiskLevel().
-// We accept the state as a plain string to keep scoring independent of statemachine.
+
 var stateRisk = map[string]int{
 	"NORMAL":                       0,
 	"SWAP_DETECTED":                30,
@@ -55,18 +45,14 @@ var stateRisk = map[string]int{
 	"TRANSFER_POST_RESET":          70,
 }
 
-// Hub risk bonus by RiskLabel (from graph.HubResult.RiskLabel).
-// Adds on top of the CEP risk to push borderline cases over thresholds.
+
 var hubRiskBonus = map[string]int{
-	"SYNDICATE_CANDIDATE":      5,  // 2 victims   → e.g. 90+5 = 95 → HOLD
-	"PROBABLE_SYNDICATE_HUB":   10, // 3-4 victims → e.g. 40+10 = 50 → SMS_ALERT
-	"CONFIRMED_SYNDICATE_HUB":  15, // 5+ victims  → e.g. 70+15 = 85 → HOLD
+	"SYNDICATE_CANDIDATE":      5,  
+	"PROBABLE_SYNDICATE_HUB":   10, 
+	"CONFIRMED_SYNDICATE_HUB":  15, 
 }
 
-// Evaluate computes a risk score for fromPhone given its current CEP state
-// and (optionally) the recipient phone number, deviceID, and transferLoc for graph/hub enrichment.
-//
-// stateStr is the string value of statemachine.State (e.g. "SWAP_DETECTED").
+
 func Evaluate(db *sql.DB, fromPhone, stateStr, toPhone, deviceID, transferLoc string) Result {
 	reasons := []string{}
 	computedAt := time.Now().UTC()

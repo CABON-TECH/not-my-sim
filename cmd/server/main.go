@@ -139,6 +139,7 @@ func main() {
 	// Phase 1: SIM swap webhook (now with persistence + event bus).
 	r.HandleFunc("/webhooks/simswap", h.HandleSimSwap).Methods(http.MethodPost)
 	r.HandleFunc("/webhooks/sms", h.HandleSMSCallback).Methods(http.MethodPost)
+	r.HandleFunc("/webhooks/voice", webhooks.HandleVoiceCallback).Methods(http.MethodPost)
 
 	// Phase 2: event ingestion endpoints.
 	r.HandleFunc("/events/transaction", h.HandleTransaction).Methods(http.MethodPost)

@@ -1,16 +1,4 @@
-// Package statemachine implements the per-account CEP (Complex Event Processing)
-// state machine described in the design doc Section 3.3.
-//
-// States:
-//
-//	NORMAL → (swap event) → SWAP_DETECTED
-//	SWAP_DETECTED → (reset within window) → CREDENTIAL_RESET_POST_SWAP
-//	CREDENTIAL_RESET_POST_SWAP → (transfer within window) → TRANSFER_POST_RESET
-//	Any non-NORMAL state → (window expires with no further events) → NORMAL
-//
-// Production equivalent: Apache Flink CEP job with per-key state, running on
-// the Kafka event stream. For this prototype: a single goroutine consuming all three streams in-process
-// channels, maintaining an in-memory state map backed by Postgres.
+
 package statemachine
 
 import (
@@ -57,9 +45,7 @@ type AccountState struct {
 	LastSwapRequestID   string
 }
 
-// OnCriticalFn is called (in a goroutine) when an account reaches TRANSFER_POST_RESET.
-// Phase 4 will wire in SMS alerts and the transaction hold.
-// Signature matches what the// OnCriticalFn is a callback fired when the state machine reaches TRANSFER_POST_RESET.
+
 type OnCriticalFn func(fromNumber, toNumber string, amount float64, deviceId, transferLoc string)
 
 // Machine is the state machine worker. Create with New, then call Start.
@@ -72,8 +58,7 @@ type Machine struct {
 	onCritical    OnCriticalFn
 }
 
-// New creates a Machine. riskWindowHours is how long after a swap we consider
-// subsequent events high-risk (72h in the design doc).
+
 func New(db *sql.DB, bus *events.Bus, riskWindowHours int, onCritical OnCriticalFn) *Machine {
 	return &Machine{
 		db:            db,
@@ -84,8 +69,7 @@ func New(db *sql.DB, bus *events.Bus, riskWindowHours int, onCritical OnCritical
 	}
 }
 
-// Start launches the state machine worker goroutine.
-// Call once from main after the DB is ready.
+
 func (m *Machine) Start() {
 	log.Printf("🔄 State machine started | risk window = %v", m.riskWindowDur)
 	expireTicker := time.NewTicker(1 * time.Minute)
@@ -212,8 +196,7 @@ func (m *Machine) handleTransfer(ev events.TransferEvent) {
 	}
 }
 
-// checkWindowExpiry runs on a 1-minute ticker, resetting any accounts whose
-// risk window has expired without completing the fraud chain.
+
 func (m *Machine) checkWindowExpiry() {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -242,9 +225,7 @@ func (m *Machine) transitionToNormal(st *AccountState) {
 	m.persist(st)
 }
 
-// loadOrInit returns the AccountState from the in-memory cache,
-// or loads it from Postgres, or creates a fresh NORMAL state.
-// Caller must hold m.mu.
+
 func (m *Machine) loadOrInit(phoneNumber string) *AccountState {
 	if st, ok := m.states[phoneNumber]; ok {
 		return st
@@ -288,8 +269,7 @@ func (m *Machine) loadFromDB(phoneNumber string) *AccountState {
 	return st
 }
 
-// persist upserts the account state to Postgres.
-// Must be called while holding m.mu (no additional lock taken here).
+
 func (m *Machine) persist(st *AccountState) {
 	_, err := m.db.Exec(`
 		INSERT INTO account_state

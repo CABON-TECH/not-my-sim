@@ -35,9 +35,6 @@ func Send2FASMS(victimPhone string, message string) {
 		log.Printf("⚠️  [SMS MOCK] Would send: '%s' to %s (AT keys missing)", message, victimPhone)
 		return
 	}
-	if fromNumber == "" {
-		fromNumber = "NotMySim" // Default alphanumeric
-	}
 
 	endpoint := "https://api.africastalking.com/version1/messaging"
 	if username == "sandbox" {
@@ -48,7 +45,9 @@ func Send2FASMS(victimPhone string, message string) {
 	data.Set("username", username)
 	data.Set("to", victimPhone)
 	data.Set("message", message)
-	data.Set("from", fromNumber)
+	if fromNumber != "" {
+		data.Set("from", fromNumber)
+	}
 
 	req, _ := http.NewRequest("POST", endpoint, strings.NewReader(data.Encode()))
 	req.Header.Add("Accept", "application/json")

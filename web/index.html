@@ -17,6 +17,7 @@
         .fade-in { animation: fadeIn 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         #network-graph { height: 400px; width: 100%; border-radius: 0.75rem; background: #111827; }
+        .leaflet-tile-pane { filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%); }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-200 font-sans min-h-screen p-8">
@@ -197,8 +198,8 @@
         // Leaflet Geo-Map Initialization
         // -------------------------------------------------------------
         var map = L.map('geo-map').setView([-1.2921, 36.8219], 6); // Centered on Kenya
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
             maxZoom: 19
         }).addTo(map);
 
