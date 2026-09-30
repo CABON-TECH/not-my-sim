@@ -39,7 +39,7 @@
                 <button hx-post="/ui/trigger-cinematic" hx-swap="none" onclick="this.innerHTML='🎬 Running...'; this.classList.add('opacity-50')" class="bg-purple-900/50 hover:bg-purple-800 text-purple-300 px-4 py-2 rounded shadow transition active:scale-95 border border-purple-700 font-bold flex items-center gap-2">
                     🎬 Cinematic Demo Mode
                 </button>
-                <button hx-post="/ui/trigger" hx-swap="none" class="bg-red-900/50 hover:bg-red-800 text-red-300 px-4 py-2 rounded shadow transition active:scale-95 border border-red-700 font-bold">
+                <button hx-post="/ui/trigger" hx-swap="none" onclick="let orig=this.innerHTML; this.innerHTML='⚡ Injecting...'; this.classList.add('opacity-50'); setTimeout(()=> { this.innerHTML=orig; this.classList.remove('opacity-50'); }, 3000)" class="bg-red-900/50 hover:bg-red-800 text-red-300 px-4 py-2 rounded shadow transition active:scale-95 border border-red-700 font-bold">
                     ⚡ Fast Attack Simulation
                 </button>
                 <button hx-post="/admin/reset-demo" hx-swap="none" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded shadow transition active:scale-95 border border-gray-600">

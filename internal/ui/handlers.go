@@ -284,7 +284,10 @@ func HandleUnfreeze(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-// HandleTakedown freezes a mule and all connected victims.
+// HandleTakedown freezes a mule and all connected victims, then:
+//   - SMSes each victim that their account is frozen
+//   - SMSes the analyst/admin (ALERT_PHONE) with a takedown summary
+//   - Initiates a robocall to each victim for maximum reach
 func HandleTakedown(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		mule := r.URL.Query().Get("mule")
@@ -296,15 +299,42 @@ func HandleTakedown(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Freeze the mule
+		// 1. Collect victim phone numbers BEFORE freezing so we can notify them.
+		rows, err := db.Query(`SELECT from_number FROM graph_edges WHERE to_number = $1`, mule)
+		if err != nil {
+			log.Printf("takedown: query victims failed: %v", err)
+		}
+		var victims []string
+		if rows != nil {
+			for rows.Next() {
+				var phone string
+				rows.Scan(&phone)
+				victims = append(victims, phone)
+			}
+			rows.Close()
+		}
+
+		// 2. Freeze mule and all victims in the DB.
 		db.Exec(`UPDATE account_state SET is_frozen = TRUE WHERE phone_number = $1`, mule)
-		// Freeze all victims transferring to this mule
 		db.Exec(`
 			UPDATE account_state 
 			SET is_frozen = TRUE 
 			WHERE phone_number IN (
 				SELECT from_number FROM graph_edges WHERE to_number = $1
 			)`, mule)
+
+		log.Printf("☢️  NETWORK TAKEDOWN | mule=%s victims=%v", mule, victims)
+
+		// 3. Fire all notifications concurrently so the HTTP response isn't delayed.
+		go func() {
+			// Notify each victim by SMS and robocall.
+			for _, v := range victims {
+				actions.SendFreezeNotification(v)
+				actions.InitiateRobocall(v)
+			}
+			// Notify the analyst/admin.
+			actions.SendAnalystAlert(mule, victims)
+		}()
 
 		w.WriteHeader(http.StatusOK)
 	}

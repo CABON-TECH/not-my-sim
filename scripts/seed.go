@@ -124,7 +124,9 @@ func main() {
 	// =========================================================
 	// Account C → Grey Area 2FA Trigger (70 Points)
 	// =========================================================
-	phoneC := "+254729080194"
+	// Account C uses a different prefix so it's clearly distinct from A and B.
+	// It is still random — no real number is ever hardcoded in this script.
+	phoneC := fmt.Sprintf("+254729%d", suffix)
 	log.Printf("\n--- Attacking Account C (Grey Area 2FA): %s ---", phoneC)
 
 	// SIM Swap + Reset + Isolated Transfer
