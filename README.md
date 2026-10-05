@@ -82,8 +82,8 @@ SIM swaps in Kenya are processed by registered telco agents. Every swap event ca
 ### Database
 
 ```bash
-psql -U postgres -c "CREATE USER notmysim WITH PASSWORD 'notmysim_secret';"
-psql -U postgres -c "CREATE DATABASE notmysim OWNER notmysim;"
+psql -U postgres -c "CREATE USER database WITH PASSWORD 'database';"
+psql -U postgres -c "CREATE DATABASE database OWNER database;"
 ```
 
 ### Environment
@@ -92,7 +92,7 @@ Create a `.env` file in the project root:
 
 ```env
 PORT=8089
-DATABASE_URL=postgres://notmysim:notmysim_secret@localhost:5433/notmysim?sslmode=disable
+DATABASE_URL=postgres://postgres:database_secret@localhost:5433/database?sslmode=disable
 
 AT_USERNAME=sandbox
 AT_API_KEY=your_api_key_here
