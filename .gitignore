@@ -1,5 +1,5 @@
 # Environment — never commit real credentials
-
+.env
 
 # Build output
 /bin/
